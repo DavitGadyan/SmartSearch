@@ -1,0 +1,87 @@
+name: smartsearch
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    shm_size: "1gb"  # parallel HNSW index builds need more than Docker's default 64 MB /dev/shm
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-smartsearch}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smartsearch}
+      POSTGRES_DB: ${POSTGRES_DB:-smartsearch}
+    ports:
+      - "${POSTGRES_PORT:-5435}:5432"  # non-default host port: avoids clashing with a locally installed Postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smartsearch} -d ${POSTGRES_DB:-smartsearch}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    command: >
+      postgres -c shared_buffers=512MB -c work_mem=64MB -c maintenance_work_mem=512MB
+               -c max_wal_size=2GB -c random_page_cost=1.1
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.22.1
+    ports:
+      - "${MLFLOW_PORT:-5001}:5000"  # 5000 is taken by macOS AirPlay Receiver
+    volumes:
+      - mlflow:/mlflow
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000
+        --backend-store-uri sqlite:////mlflow/mlflow.db
+        --artifacts-destination /mlflow/artifacts
+        --serve-artifacts
+
+  api:
+    build:
+      context: ./backend
+    profiles: ["app"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-smartsearch}:${POSTGRES_PASSWORD:-smartsearch}@postgres:5432/${POSTGRES_DB:-smartsearch}
+      REDIS_URL: redis://redis:6379/0
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-dev-admin-key}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AGENT_MODEL: ${AGENT_MODEL:-claude-sonnet-5-5}
+      BULK_MODEL: ${BULK_MODEL:-claude-haiku-5-5}
+      DATA_DIR: /data
+      CORS_ORIGINS: '["http://localhost:3000"]'
+    volumes:
+      - ./data:/data
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    environment:
+      API_URL: http://api:8000
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-dev-admin-key}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
+    profiles: ["app"]
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  mlflow:

@@ -1,0 +1,233 @@
+@import "tailwindcss";
+
+/* ---------- tokens: liquid glass. Translucent white panels with blur over a soft backdrop; charcoal text,
+   one charcoal accent, pastel status pairs, muted chart series. ---------- */
+:root {
+  color-scheme: light;
+  --bg: #f4f5f7;
+  --surface: rgba(255, 255, 255, 0.62);
+  --surface-2: rgba(255, 255, 255, 0.46);
+  --surface-3: rgba(255, 255, 255, 0.3);
+  --fg: #111111;
+  --fg-2: #37352f;
+  --muted: #6f6e6a;
+  --border: rgba(255, 255, 255, 0.65);
+  --border-strong: rgba(17, 17, 17, 0.14);
+  --accent: rgba(17, 17, 17, 0.9);
+  --accent-fg: #ffffff;
+  --accent-soft: rgba(17, 17, 17, 0.06);
+  --link: #1f6c9f;
+  --good: #2f6b3a;
+  --good-soft: rgba(237, 243, 236, 0.9);
+  --info: #1f6c9f;
+  --info-soft: rgba(225, 243, 254, 0.9);
+  --warning: #8a5a00;
+  --warning-soft: rgba(251, 243, 219, 0.9);
+  --critical: #9f2f2d;
+  --critical-soft: rgba(253, 235, 236, 0.9);
+  --grid: rgba(17, 17, 17, 0.06);
+  --axis: rgba(17, 17, 17, 0.14);
+  --series-1: #37352f;
+  --series-2: #9b9890;
+  --series-3: #5f8db0;
+  --series-4: #b89a4f;
+  --series-5: #6f9a74;
+  --series-6: #b56f6d;
+  --shadow: 0 8px 32px rgba(20, 30, 60, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --glass-blur: 18px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-link: var(--link);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-critical: var(--critical);
+  --color-critical-soft: var(--critical-soft);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-serif: var(--font-serif), Georgia, serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --radius-card: 28px;
+  --radius-control: 9999px;
+  --radius-tile: 18px;
+  --shadow-card: var(--shadow);
+}
+
+html {
+  background: var(--bg);
+}
+
+/* the backdrop: a soft generated image under a light veil, fixed so panels glide over it */
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(244, 245, 247, 0.55) 60%, rgba(244, 245, 247, 0.85) 100%),
+    url("/img/bg/liquid.webp");
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  color: var(--fg);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* frosted panel: blur what is behind, a hairline of light on top */
+.glass {
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.glass-strong {
+  background: rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  border: 1px solid var(--border);
+}
+
+/* ---------- motion: transform/opacity only; globally disabled under prefers-reduced-motion below ---------- */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.page-in {
+  animation: page-in 350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* fades up on mount */
+.rise {
+  animation: fade-up 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* hidden until scrolled into view, then fades up (components/motion.tsx adds .in) */
+.reveal {
+  opacity: 0;
+}
+.reveal.in {
+  animation: fade-up 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+/* children of a .stagger container start one after another */
+.stagger > * {
+  animation-delay: calc(var(--n, 0) * 60ms);
+}
+.stagger > :nth-child(1) { --n: 0; }
+.stagger > :nth-child(2) { --n: 1; }
+.stagger > :nth-child(3) { --n: 2; }
+.stagger > :nth-child(4) { --n: 3; }
+.stagger > :nth-child(5) { --n: 4; }
+.stagger > :nth-child(6) { --n: 5; }
+.stagger > :nth-child(7) { --n: 6; }
+.stagger > :nth-child(8) { --n: 7; }
+.stagger > :nth-child(9) { --n: 8; }
+.stagger > :nth-child(10) { --n: 9; }
+.stagger > :nth-child(11) { --n: 10; }
+.stagger > :nth-child(n + 12) { --n: 11; }
+/* loading placeholder: a soft sweep of light */
+.shimmer {
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0.35) 30%, rgba(255, 255, 255, 0.75) 50%, rgba(255, 255, 255, 0.35) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* clearer glass for product cards: more of the backdrop shows through, a brighter edge, lifts on hover */
+.glass-clear {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.18));
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  backdrop-filter: blur(22px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 32px rgba(20, 30, 60, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+.glass-clear:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.32));
+  box-shadow: 0 14px 40px rgba(20, 30, 60, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --surface: #ffffff;
+    --surface-2: #f4f4f2;
+    --surface-3: #eaeae7;
+    --border: #e4e4e1;
+  }
+  body {
+    background-image: none;
+  }
+  .glass,
+  .glass-strong,
+  .glass-clear {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: #ffffff;
+  }
+}
+
+/* tabular numerals wherever numbers align in columns */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* recharts chrome */
+.recharts-cartesian-grid line {
+  stroke: var(--grid);
+}
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick-line {
+  stroke: var(--axis);
+}
+.recharts-text {
+  fill: var(--muted);
+  font-size: 11px;
+}
+.recharts-tooltip-cursor {
+  stroke: var(--border-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "smartsearch-demo",
+  "private": true,
+  "description": "Records and composes the SmartSearch demo video and portfolio screenshots",
+  "dependencies": { "playwright": "^1.56.1" }
+}
