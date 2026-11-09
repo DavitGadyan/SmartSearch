@@ -5,7 +5,7 @@ retrieval, a learning-to-rank model, personalization, recommendation rails, an A
 merchant console, and a shopping assistant that can buy. Built as a portfolio project for search and discovery
 data-science roles.
 
-![storefront](docs/screenshots/search.png)
+![storefront](docs/screenshots/storefront-search.png)
 
 ![experiment](docs/screenshots/admin-experiment.png)
 
